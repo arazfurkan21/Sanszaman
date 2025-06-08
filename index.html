@@ -2,16 +2,15 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <title>Otomatik Şarj Gönderici</title>
+  <title>Şarj Bilgisi</title>
 </head>
 <body>
-  <h2>Cihaz Şarj Bilgisi Gönderiliyor...</h2>
+  <h2>Şarj Bilgisi Gönderiliyor...</h2>
   <p id="status">Yükleniyor...</p>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.0/firebase-app.js";
     import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/11.9.0/firebase-database.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.9.0/firebase-analytics.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyA2ZZ7moCVLTi3LjwToDvqPg11e9KVIMgw",
@@ -20,37 +19,34 @@
       projectId: "arazyazilim",
       storageBucket: "arazyazilim.appspot.com",
       messagingSenderId: "911734141067",
-      appId: "1:911734141067:web:8dd3532898c8ee16ed648e",
-      measurementId: "G-93Y65NB4KZ"
+      appId: "1:911734141067:web:8dd3532898c8ee16ed648e"
     };
 
     const app = initializeApp(firebaseConfig);
-    const database = getDatabase(app);
-    const analytics = getAnalytics(app);
+    const db = getDatabase(app);
 
-    const statusText = document.getElementById("status");
+    const statusEl = document.getElementById("status");
 
-    // Battery API ile şarj yüzdesini al ve Firebase'e kaydet
     if ('getBattery' in navigator) {
       navigator.getBattery().then(battery => {
         const level = Math.round(battery.level * 100);
         const charging = battery.charging;
 
-        push(ref(database, 'batteryLevels'), {
+        push(ref(db, "batteryLevels"), {
           level: level,
           charging: charging,
           timestamp: Date.now(),
           userAgent: navigator.userAgent
         }).then(() => {
-          statusText.innerText = `Şarj: %${level} (${charging ? "Şarj oluyor" : "Şarj olmuyor"}) - Firebase'e gönderildi.`;
+          statusEl.innerText = `Şarj: %${level} (${charging ? "Şarj oluyor" : "Şarj olmuyor"}) - Gönderildi.`;
         }).catch(err => {
-          statusText.innerText = "Firebase'e gönderim hatası: " + err.message;
+          statusEl.innerText = "Gönderim hatası: " + err.message;
         });
       }).catch(err => {
-        statusText.innerText = "Battery API hatası: " + err.message;
+        statusEl.innerText = "Battery API hatası: " + err.message;
       });
     } else {
-      statusText.innerText = "Tarayıcı Battery API'yi desteklemiyor.";
+      statusEl.innerText = "Tarayıcı Battery API'yi desteklemiyor.";
     }
   </script>
 </body>
