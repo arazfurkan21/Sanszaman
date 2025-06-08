@@ -1,34 +1,57 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rastgele Renk Butonu</title>
-    <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        button {
-            padding: 15px 30px;
-            font-size: 18px;
-            cursor: pointer;
-            border: none;
-            border-radius: 5px;
-            background-color: gray;
-            color: white;
-        }
-    </style>
+    <title>Şarj Yüzdesi Gönderici</title>
 </head>
 <body>
-    <button onclick="changeColor()">bol şans yiğidim</button><script>
-    function changeColor() {
-        let colors = ["red", "black"];
-        document.body.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-    }
-</script>
+    <h2>Cihazın Şarj Yüzdesi Firebase'e Gönderiliyor...</h2>
+    <p id="status">Yükleniyor...</p>
 
+    <script type="module">
+        // Firebase modüllerini içe aktar
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-app.js";
+        import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-database.js";
+
+        // Firebase yapılandırması
+        const firebaseConfig = {
+            apiKey: "AIzaSyA2ZZ7moCVLTi3LjwToDvqPg11e9KVIMgw",
+            authDomain: "arazyazilim.firebaseapp.com",
+            databaseURL: "https://arazyazilim-default-rtdb.firebaseio.com",
+            projectId: "arazyazilim",
+            storageBucket: "arazyazilim.appspot.com",
+            messagingSenderId: "911734141067",
+            appId: "1:911734141067:web:8dd3532898c8ee16ed648e",
+            measurementId: "G-93Y65NB4KZ"
+        };
+
+        // Firebase başlat
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        // Battery API ile şarj bilgisi al ve Firebase'e gönder
+        const statusText = document.getElementById('status');
+
+        if ('getBattery' in navigator) {
+            navigator.getBattery().then(battery => {
+                const batteryLevel = Math.round(battery.level * 100); // 0.67 → 67
+                statusText.innerText = "Şarj Yüzdesi: %" + batteryLevel;
+
+                // Firebase'e veri gönder
+                push(ref(database, 'batteryLevels'), {
+                    level: batteryLevel,
+                    timestamp: Date.now()
+                }).then(() => {
+                    statusText.innerText += " - Firebase'e gönderildi.";
+                }).catch(error => {
+                    statusText.innerText = "Gönderim hatası: " + error.message;
+                });
+            }).catch(err => {
+                statusText.innerText = "Battery API hatası: " + err.message;
+            });
+        } else {
+            statusText.innerText = "Tarayıcı Battery API desteklemiyor.";
+        }
+    </script>
 </body>
 </html>
